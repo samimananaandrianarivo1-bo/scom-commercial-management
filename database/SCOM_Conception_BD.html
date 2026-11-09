@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>SCOM — Conception Base de Données (MCD / MLD / MPD)</title>
+<style>
+  @page { size: A4; margin: 18mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: #1e293b; line-height: 1.5; background: #fff; padding: 30px 40px; }
+  h1 { font-size: 22pt; color: #0b1a3e; text-align: center; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #64748b; font-size: 11pt; margin-bottom: 30px; }
+  h2 { font-size: 15pt; color: #1d4ed8; border-bottom: 2px solid #1d4ed8; padding-bottom: 6px; margin: 30px 0 16px 0; }
+  h3 { font-size: 12pt; color: #334155; margin: 18px 0 10px 0; }
+
+  /* Entity boxes */
+  .entity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+  .entity { border: 2px solid #1d4ed8; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
+  .entity-header { background: #1d4ed8; color: #fff; padding: 8px 14px; font-weight: 700; font-size: 12pt; letter-spacing: 0.03em; }
+  .entity-header.assoc { background: #7c3aed; }
+  .entity-body { padding: 0; }
+  .entity-body table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .entity-body td { padding: 4px 10px; border-bottom: 1px solid #e2e8f0; }
+  .entity-body tr:last-child td { border-bottom: none; }
+  .pk { color: #b91c1c; font-weight: 700; }
+  .pk::before { content: '🔑 '; font-size: 9pt; }
+  .fk { color: #7c3aed; font-weight: 600; }
+  .fk::before { content: '🔗 '; font-size: 9pt; }
+  .nn { color: #94a3b8; font-size: 9pt; }
+
+  /* Relationship diagram */
+  .diagram-box { border: 1px solid #cbd5e1; border-radius: 10px; padding: 20px; margin: 16px 0; background: #f8fafc; page-break-inside: avoid; overflow-x: auto; }
+  .diagram-svg { display: block; margin: 0 auto; }
+
+  /* Cardinalities table */
+  table.card { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+  table.card th { background: #0b1a3e; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+  table.card td { padding: 7px 12px; border-bottom: 1px solid #e2e8f0; }
+  table.card tr:nth-child(even) { background: #f1f5f9; }
+  table.card code { background: #e0e7ff; color: #3730a3; padding: 1px 5px; border-radius: 3px; font-size: 9pt; }
+
+  /* MLD */
+  .mld-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+  .mld-table th { background: #059669; color: #fff; padding: 8px 12px; text-align: left; }
+  .mld-table td { padding: 6px 12px; border-bottom: 1px solid #e2e8f0; }
+  .mld-table tr:nth-child(even) { background: #ecfdf5; }
+  .mld-table .tbl-name { font-weight: 700; color: #065f46; }
+
+  /* SQL */
+  pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; font-size: 9pt; overflow-x: auto; line-height: 1.6; margin: 12px 0; page-break-inside: avoid; }
+  pre .kw { color: #7dd3fc; }
+  pre .fn { color: #fbbf24; }
+  pre .cm { color: #64748b; font-style: italic; }
+  pre .str { color: #86efac; }
+
+  .note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 12px 0; font-size: 10pt; border-radius: 0 6px 6px 0; }
+  .page-break { page-break-before: always; }
+  footer { text-align: center; color: #94a3b8; font-size: 9pt; margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ -->
+<!--  PAGE 1 : MCD — Modele Conceptuel de Donnees                      -->
+<!-- ================================================================ -->
+
+<h1>SCOM — Conception de la Base de Données</h1>
+<div class="subtitle">Système de Gestion Commerciale &bull; MCD &bull; MLD &bull; MPD &bull; MySQL 8.4</div>
+
+<h2>1. MCD — Modèle Conceptuel de Données</h2>
+
+<h3>1.1 Entités</h3>
+<div class="entity-grid">
+
+  <!-- VENDEUR -->
+  <div class="entity">
+    <div class="entity-header">VENDEUR</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_vendeur</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>code_vendeur</td><td class="nn">VARCHAR(50) UNIQUE</td></tr>
+      <tr><td>nom_vendeur</td><td class="nn">VARCHAR(100)</td></tr>
+      <tr><td>prenom_vendeur</td><td>VARCHAR(100)</td></tr>
+      <tr><td>email_vendeur</td><td>VARCHAR(150)</td></tr>
+      <tr><td>telephone_vendeur</td><td>VARCHAR(30)</td></tr>
+      <tr><td>adresse_vendeur</td><td>VARCHAR(255)</td></tr>
+    </table></div>
+  </div>
+
+  <!-- RAYON -->
+  <div class="entity">
+    <div class="entity-header">RAYON</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_rayon</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>code_rayon</td><td class="nn">VARCHAR(50) UNIQUE</td></tr>
+      <tr><td>nom_rayon</td><td class="nn">VARCHAR(100)</td></tr>
+      <tr><td>description_rayon</td><td>VARCHAR(500)</td></tr>
+    </table></div>
+  </div>
+
+  <!-- BON_COMMANDE -->
+  <div class="entity">
+    <div class="entity-header">BON_COMMANDE</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_bon_commande</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>numero_bon</td><td class="nn">VARCHAR(50) UNIQUE</td></tr>
+      <tr><td>date_bon</td><td>DATE</td></tr>
+      <tr><td>montant_bon</td><td class="nn">DECIMAL(15,2)</td></tr>
+      <tr><td>statut_bon</td><td>VARCHAR(30) — PAYE / EN_COURS / ANNULE</td></tr>
+    </table></div>
+  </div>
+
+  <!-- COMMISSION -->
+  <div class="entity">
+    <div class="entity-header">COMMISSION</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_commission</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>code_commission</td><td class="nn">VARCHAR(50) UNIQUE</td></tr>
+      <tr><td>taux_commission</td><td class="nn">DECIMAL(6,2)</td></tr>
+      <tr><td>montant_commission</td><td class="nn">DECIMAL(15,2)</td></tr>
+      <tr><td>date_commission</td><td>DATE</td></tr>
+    </table></div>
+  </div>
+
+  <!-- PAIEMENT -->
+  <div class="entity">
+    <div class="entity-header">PAIEMENT</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_paiement</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>code_paiement</td><td class="nn">VARCHAR(50) UNIQUE</td></tr>
+      <tr><td>mode_paiement</td><td class="nn">VARCHAR(50) — ESPECES / CB / VIREMENT</td></tr>
+      <tr><td>montant_paiement</td><td class="nn">DECIMAL(15,2)</td></tr>
+      <tr><td>date_paiement</td><td>DATE</td></tr>
+    </table></div>
+  </div>
+
+  <!-- UTILISATEUR -->
+  <div class="entity">
+    <div class="entity-header">UTILISATEUR</div>
+    <div class="entity-body"><table>
+      <tr><td class="pk">ID_utilisateur</td><td class="nn">BIGINT PK</td></tr>
+      <tr><td>login_utilisateur</td><td class="nn">VARCHAR(100) UNIQUE</td></tr>
+      <tr><td>password_utilisateur</td><td class="nn">VARCHAR(255)</td></tr>
+      <tr><td>nom_utilisateur</td><td>VARCHAR(100)</td></tr>
+      <tr><td>email_utilisateur</td><td>VARCHAR(150)</td></tr>
+      <tr><td>role_utilisateur</td><td>VARCHAR(50) — ADMIN / MANAGER / OPERATEUR</td></tr>
+      <tr><td>photo_utilisateur</td><td>TEXT (base64)</td></tr>
+    </table></div>
+  </div>
+
+</div>
+
+<!-- ================================================================ -->
+<!--  DIAGRAMME MCD (SVG)                                               -->
+<!-- ================================================================ -->
+
+<h3>1.2 Diagramme Entité-Relation (MCD)</h3>
+<div class="diagram-box">
+<svg class="diagram-svg" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial" font-size="11">
+  <!-- VENDEUR entity -->
+  <rect x="20" y="140" width="150" height="120" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="20" y="140" width="150" height="28" rx="8" fill="#1d4ed8"/>
+  <text x="95" y="159" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">VENDEUR</text>
+  <text x="30" y="186" fill="#b91c1c" font-weight="700" font-size="10">🔑 ID_vendeur</text>
+  <text x="30" y="202" fill="#334155" font-size="10">code_vendeur</text>
+  <text x="30" y="218" fill="#334155" font-size="10">nom / prenom</text>
+  <text x="30" y="234" fill="#334155" font-size="10">email / tel / adresse</text>
+
+  <!-- RAYON entity -->
+  <rect x="20" y="10" width="150" height="100" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="20" y="10" width="150" height="28" rx="8" fill="#1d4ed8"/>
+  <text x="95" y="29" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">RAYON</text>
+  <text x="30" y="56" fill="#b91c1c" font-weight="700" font-size="10">🔑 ID_rayon</text>
+  <text x="30" y="72" fill="#334155" font-size="10">code_rayon</text>
+  <text x="30" y="88" fill="#334155" font-size="10">nom / description</text>
+
+  <!-- EXPLOITER (N:N) -->
+  <rect x="70" y="280" width="130" height="50" rx="25" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+  <text x="135" y="302" text-anchor="middle" fill="#3b0764" font-weight="700" font-size="11">EXPLOITER</text>
+  <text x="135" y="320" text-anchor="middle" fill="#7c3aed" font-size="9">N:N</text>
+
+  <!-- Lignes VENDEUR - EXPLOITER -->
+  <line x1="95" y1="260" x2="115" y2="280" stroke="#7c3aed" stroke-width="1.5"/>
+  <line x1="95" y1="60" x2="95" y2="140" stroke="#94a3b8" stroke-width="0"/>
+
+  <!-- Lignes RAYON - EXPLOITER -->
+  <line x1="95" y1="110" x2="115" y2="280" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4"/>
+
+  <!-- Cardinalites EXPLOITER -->
+  <text x="85" y="272" fill="#7c3aed" font-weight="700" font-size="10">1,N</text>
+  <text x="88" y="130" fill="#7c3aed" font-weight="700" font-size="10">1,N</text>
+
+  <!-- BON_COMMANDE entity -->
+  <rect x="320" y="140" width="160" height="120" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="320" y="140" width="160" height="28" rx="8" fill="#1d4ed8"/>
+  <text x="400" y="159" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">BON_COMMANDE</text>
+  <text x="330" y="186" fill="#b91c1c" font-weight="700" font-size="10">🔑 ID_bon_commande</text>
+  <text x="330" y="202" fill="#334155" font-size="10">numero_bon</text>
+  <text x="330" y="218" fill="#334155" font-size="10">date / montant</text>
+  <text x="330" y="234" fill="#334155" font-size="10">statut</text>
+
+  <!-- COMMISSION entity -->
+  <rect x="320" y="300" width="160" height="110" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="320" y="300" width="160" height="28" rx="8" fill="#1d4ed8"/>
+  <text x="400" y="319" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">COMMISSION</text>
+  <text x="330" y="346" fill="#b91c1c" font-weight="700" font-size="10">🔑 ID_commission</text>
+  <text x="330" y="362" fill="#334155" font-size="10">code / taux</text>
+  <text x="330" y="378" fill="#334155" font-size="10">montant / date</text>
+
+  <!-- PAIEMENT entity -->
+  <rect x="620" y="140" width="160" height="120" rx="8" fill="#dbeafe" stroke="#1d4ed8" stroke-width="2"/>
+  <rect x="620" y="140" width="160" height="28" rx="8" fill="#1d4ed8"/>
+  <text x="700" y="159" text-anchor="middle" fill="#fff" font-weight="700" font-size="12">PAIEMENT</text>
+  <text x="630" y="186" fill="#b91c1c" font-weight="700" font-size="10">🔑 ID_paiement</text>
+  <text x="630" y="202" fill="#334155" font-size="10">code_paiement</text>
+  <text x="630" y="218" fill="#334155" font-size="10">mode / montant</text>
+  <text x="630" y="234" fill="#334155" font-size="10">date</text>
+
+  <!-- ETRE_PAYE_PAR (N:N) -->
+  <rect x="580" y="300" width="160" height="50" rx="25" fill="#c4b5fd" stroke="#7c3aed" stroke-width="2"/>
+  <text x="660" y="320" text-anchor="middle" fill="#3b0764" font-weight="700" font-size="10">ETRE_PAYE_PAR</text>
+  <text x="660" y="338" text-anchor="middle" fill="#7c3aed" font-size="9">N:N</text>
+
+  <!-- Lignes BON_COMMANDE - ETRE_PAYE_PAR -->
+  <line x1="480" y1="240" x2="580" y2="310" stroke="#7c3aed" stroke-width="1.5"/>
+
+  <!-- Lignes PAIEMENT - ETRE_PAYE_PAR -->
+  <line x1="700" y1="260" x2="690" y2="300" stroke="#7c3aed" stroke-width="1.5"/>
+
+  <!-- Cardinalites ETRE_PAYE_PAR -->
+  <text x="510" y="264" fill="#7c3aed" font-weight="700" font-size="10">1,N</text>
+  <text x="675" y="278" fill="#7c3aed" font-weight="700" font-size="10">1,N</text>
+
+  <!-- VENDEUR -> BON_COMMANDE (1:N) -->
+  <line x1="170" y1="200" x2="320" y2="200" stroke="#059669" stroke-width="2"/>
+  <text x="220" y="195" fill="#059669" font-weight="700" font-size="10">1</text>
+  <text x="290" y="195" fill="#059669" font-weight="700" font-size="10">N</text>
+  <text x="230" y="188" fill="#059669" font-size="9" font-style="italic">émet</text>
+
+  <!-- VENDEUR -> COMMISSION (1:N) -->
+  <line x1="170" y1="220" x2="320" y2="350" stroke="#059669" stroke-width="2"/>
+  <text x="220" y="272" fill="#059669" font-weight="700" font-size="10">1</text>
+  <text x="290" y="320" fill="#059669" font-weight="700" font-size="10">N</text>
+  <text x="230" y="298" fill="#059669" font-size="9" font-style="italic">reçoit</text>
+
+  <!-- UTILISATEUR entity (isolé) -->
+  <rect x="620" y="370" width="180" height="44" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="710" y="397" text-anchor="middle" fill="#92400e" font-weight="700" font-size="11">UTILISATEUR (système)</text>
+
+  <!-- Legend -->
+  <rect x="760" y="10" width="130" height="80" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="770" y="28" font-weight="700" font-size="10" fill="#334155">Légende :</text>
+  <line x1="770" y1="42" x2="800" y2="42" stroke="#059669" stroke-width="2"/>
+  <text x="805" y="46" font-size="9" fill="#334155">1:N (identification)</text>
+  <line x1="770" y1="60" x2="800" y2="60" stroke="#7c3aed" stroke-width="2" stroke-dasharray="4"/>
+  <text x="805" y="64" font-size="9" fill="#334155">N:N (association)</text>
+  <rect x="770" y="72" width="10" height="10" rx="2" fill="#dbeafe" stroke="#1d4ed8"/>
+  <text x="785" y="81" font-size="9" fill="#334155">Entité forte</text>
+</svg>
+</div>
+
+<!-- ================================================================ -->
+<!--  CARDINALITES                                                      -->
+<!-- ================================================================ -->
+
+<h3>1.3 Tableau des Cardinalités</h3>
+<table class="card">
+  <thead>
+    <tr><th>Relation</th><th>Entité A</th><th>Card. A</th><th>Entité B</th><th>Card. B</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>EXPLOITER</strong></td>
+      <td>VENDEUR</td><td><code>1,N</code></td>
+      <td>RAYON</td><td><code>1,N</code></td>
+      <td>Many-to-Many</td>
+      <td>Un vendeur exploite 1 à N rayons ; un rayon est exploité par 1 à N vendeurs</td>
+    </tr>
+    <tr>
+      <td><strong>ÉMETTRE</strong></td>
+      <td>VENDEUR</td><td><code>1,N</code></td>
+      <td>BON_COMMANDE</td><td><code>0,N</code></td>
+      <td>One-to-Many</td>
+      <td>Un vendeur émet 1 à N bons de commande ; un bon appartient à 0 ou 1 vendeur</td>
+    </tr>
+    <tr>
+      <td><strong>RECEVOIR</strong></td>
+      <td>VENDEUR</td><td><code>1,N</code></td>
+      <td>COMMISSION</td><td><code>0,N</code></td>
+      <td>One-to-Many</td>
+      <td>Un vendeur reçoit 1 à N commissions ; une commission appartient à 0 ou 1 vendeur</td>
+    </tr>
+    <tr>
+      <td><strong>ETRE_PAYE_PAR</strong></td>
+      <td>BON_COMMANDE</td><td><code>1,N</code></td>
+      <td>PAIEMENT</td><td><code>1,N</code></td>
+      <td>Many-to-Many</td>
+      <td>Un bon de commande est payé par 1 à N paiements ; un paiement couvre 1 à N bons</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="note"><strong>Note :</strong> La table UTILISATEUR est une entité isolée du domaine commercial. Elle gère l'authentification et les rôles du système (ADMIN, MANAGER, OPERATEUR) sans lien formel avec les autres entités métier.</div>
+
+<!-- ================================================================ -->
+<!--  PAGE 2 : MLD — Modele Logique de Donnees                          -->
+<!-- ================================================================ -->
+
+<div class="page-break"></div>
+<h2>2. MLD — Modèle Logique de Données (Merise)</h2>
+
+<h3>2.1 Règles de passage MCD → MLD</h3>
+<table class="card">
+  <thead><tr><th>#</th><th>Règle</th><th>Application</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Chaque entité forte → une table</td><td>VENDEUR, RAYON, BON_COMMANDE, COMMISSION, PAIEMENT, UTILISATEUR</td></tr>
+    <tr><td>2</td><td>Relation 1:N → clé étrangère côté N</td><td><code>BON_COMMANDE.ID_vendeur</code> → VENDEUR<br/><code>COMMISSION.ID_vendeur</code> → VENDEUR</td></tr>
+    <tr><td>3</td><td>Relation N:N → table d'association</td><td>EXPLOITER (ID_vendeur, ID_rayon)<br/>ETRE_PAYE_PAR (ID_bon_commande, ID_paiement)</td></tr>
+    <tr><td>4</td><td>Card. 0,N → FK nullable</td><td><code>BON_COMMANDE.ID_vendeur NULL</code><br/><code>COMMISSION.ID_vendeur NULL</code></td></tr>
+    <tr><td>5</td><td>Card. 1,N → FK NOT NULL</td><td>(non appliqué ici — les FK vendeur sont nullable pour flexibilité)</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 Schéma MLD</h3>
+
+<table class="mld-table">
+  <thead><tr><th>Table</th><th>Colonne</th><th>Type</th><th>Contrainte</th></tr></thead>
+  <tbody>
+    <tr><td class="tbl-name" rowspan="7">VENDEUR</td>
+        <td>ID_vendeur</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>code_vendeur</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>nom_vendeur</td><td>VARCHAR(100)</td><td>NOT NULL</td></tr>
+    <tr><td>prenom_vendeur</td><td>VARCHAR(100)</td><td>NULL</td></tr>
+    <tr><td>email_vendeur</td><td>VARCHAR(150)</td><td>NULL</td></tr>
+    <tr><td>telephone_vendeur</td><td>VARCHAR(30)</td><td>NULL</td></tr>
+    <tr><td>adresse_vendeur</td><td>VARCHAR(255)</td><td>NULL</td></tr>
+
+    <tr><td class="tbl-name" rowspan="5">RAYON</td>
+        <td>ID_rayon</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>code_rayon</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>nom_rayon</td><td>VARCHAR(100)</td><td>NOT NULL</td></tr>
+    <tr><td>description_rayon</td><td>VARCHAR(500)</td><td>NULL</td></tr>
+
+    <tr><td class="tbl-name" rowspan="6">BON_COMMANDE</td>
+        <td>ID_bon_commande</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>numero_bon</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>date_bon</td><td>DATE</td><td>NULL</td></tr>
+    <tr><td>montant_bon</td><td>DECIMAL(15,2)</td><td>NOT NULL, DEFAULT 0</td></tr>
+    <tr><td>statut_bon</td><td>VARCHAR(30)</td><td>NULL — PAYE / EN_COURS / ANNULE</td></tr>
+    <tr><td>ID_vendeur</td><td>BIGINT</td><td><span class="fk">FK → VENDEUR</span>, NULL</td></tr>
+
+    <tr><td class="tbl-name" rowspan="6">COMMISSION</td>
+        <td>ID_commission</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>code_commission</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>taux_commission</td><td>DECIMAL(6,2)</td><td>NOT NULL, DEFAULT 0</td></tr>
+    <tr><td>montant_commission</td><td>DECIMAL(15,2)</td><td>NOT NULL, DEFAULT 0</td></tr>
+    <tr><td>date_commission</td><td>DATE</td><td>NULL</td></tr>
+    <tr><td>ID_vendeur</td><td>BIGINT</td><td><span class="fk">FK → VENDEUR</span>, NULL</td></tr>
+
+    <tr><td class="tbl-name" rowspan="5">PAIEMENT</td>
+        <td>ID_paiement</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>code_paiement</td><td>VARCHAR(50)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>mode_paiement</td><td>VARCHAR(50)</td><td>NOT NULL — ESPECES / CB / VIREMENT</td></tr>
+    <tr><td>montant_paiement</td><td>DECIMAL(15,2)</td><td>NOT NULL, DEFAULT 0</td></tr>
+    <tr><td>date_paiement</td><td>DATE</td><td>NULL</td></tr>
+
+    <tr><td class="tbl-name" rowspan="2">EXPLOITER</td>
+        <td>ID_vendeur</td><td>BIGINT</td><td><span class="fk">FK → VENDEUR</span>, PK, CASCADE</td></tr>
+    <tr><td>ID_rayon</td><td>BIGINT</td><td><span class="fk">FK → RAYON</span>, PK, CASCADE</td></tr>
+
+    <tr><td class="tbl-name" rowspan="2">ETRE_PAYE_PAR</td>
+        <td>ID_bon_commande</td><td>BIGINT</td><td><span class="fk">FK → BON_COMMANDE</span>, PK, CASCADE</td></tr>
+    <tr><td>ID_paiement</td><td>BIGINT</td><td><span class="fk">FK → PAIEMENT</span>, PK, CASCADE</td></tr>
+
+    <tr><td class="tbl-name" rowspan="7">UTILISATEUR</td>
+        <td>ID_utilisateur</td><td>BIGINT</td><td>PK</td></tr>
+    <tr><td>login_utilisateur</td><td>VARCHAR(100)</td><td>UNIQUE, NOT NULL</td></tr>
+    <tr><td>password_utilisateur</td><td>VARCHAR(255)</td><td>NOT NULL</td></tr>
+    <tr><td>nom_utilisateur</td><td>VARCHAR(100)</td><td>NULL</td></tr>
+    <tr><td>email_utilisateur</td><td>VARCHAR(150)</td><td>NULL</td></tr>
+    <tr><td>role_utilisateur</td><td>VARCHAR(50)</td><td>NULL — ADMIN / MANAGER / OPERATEUR</td></tr>
+    <tr><td>photo_utilisateur</td><td>TEXT</td><td>NULL (base64)</td></tr>
+  </tbody>
+</table>
+
+<!-- ================================================================ -->
+<!--  PAGE 3 : MPD — Code SQL                                           -->
+<!-- ================================================================ -->
+
+<div class="page-break"></div>
+<h2>3. MPD — Modèle Physique de Données (SQL MySQL 8.4)</h2>
+
+<pre><span class="cm">-- ============================================================</span>
+<span class="cm">--  SCOM — MPD Complet — MySQL 8.4 (WAMP)</span>
+<span class="cm">--  Base : db_scom_database</span>
+<span class="cm">--  Charset : utf8mb4 / utf8mb4_unicode_ci</span>
+<span class="cm">-- ============================================================</span>
+
+<span class="kw">CREATE DATABASE IF NOT EXISTS</span> db_scom_database
+    <span class="kw">DEFAULT CHARACTER SET</span> utf8mb4
+    <span class="kw">DEFAULT COLLATE</span> utf8mb4_unicode_ci;
+
+<span class="kw">USE</span> db_scom_database;
+
+<span class="kw">SET FOREIGN_KEY_CHECKS</span> = 0;
+<span class="kw">DROP TABLE IF EXISTS</span> ETRE_PAYE_PAR;
+<span class="kw">DROP TABLE IF EXISTS</span> EXPLOITER;
+<span class="kw">DROP TABLE IF EXISTS</span> COMMISSION;
+<span class="kw">DROP TABLE IF EXISTS</span> BON_COMMANDE;
+<span class="kw">DROP TABLE IF EXISTS</span> PAIEMENT;
+<span class="kw">DROP TABLE IF EXISTS</span> UTILISATEUR;
+<span class="kw">DROP TABLE IF EXISTS</span> VENDEUR;
+<span class="kw">DROP TABLE IF EXISTS</span> RAYON;
+<span class="kw">SET FOREIGN_KEY_CHECKS</span> = 1;
+
+<span class="cm">-- ────────────────────────────────────────────────────────────</span>
+<span class="cm">--  Tables principales</span>
+<span class="cm">-- ────────────────────────────────────────────────────────────</span>
+
+<span class="kw">CREATE TABLE</span> <span class="fn">RAYON</span> (
+    ID_rayon           <span class="kw">BIGINT</span>       <span class="kw">NOT NULL</span>,
+    code_rayon         <span class="kw">VARCHAR</span>(50)  <span class="kw">NOT NULL</span>,
+    nom_rayon          <span class="kw">VARCHAR</span>(100) <span class="kw">NOT NULL</span>,
+    description_rayon  <span class="kw">VARCHAR</span>(500) <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_rayon),
+    <span class="kw">UNIQUE KEY</span> uk_rayon_code (code_rayon)
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">VENDEUR</span> (
+    ID_vendeur         <span class="kw">BIGINT</span>       <span class="kw">NOT NULL</span>,
+    code_vendeur       <span class="kw">VARCHAR</span>(50)  <span class="kw">NOT NULL</span>,
+    nom_vendeur        <span class="kw">VARCHAR</span>(100) <span class="kw">NOT NULL</span>,
+    prenom_vendeur     <span class="kw">VARCHAR</span>(100) <span class="kw">NULL</span>,
+    email_vendeur      <span class="kw">VARCHAR</span>(150) <span class="kw">NULL</span>,
+    telephone_vendeur  <span class="kw">VARCHAR</span>(30)  <span class="kw">NULL</span>,
+    adresse_vendeur    <span class="kw">VARCHAR</span>(255) <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_vendeur),
+    <span class="kw">UNIQUE KEY</span> uk_vendeur_code (code_vendeur)
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">BON_COMMANDE</span> (
+    ID_bon_commande    <span class="kw">BIGINT</span>         <span class="kw">NOT NULL</span>,
+    numero_bon         <span class="kw">VARCHAR</span>(50)    <span class="kw">NOT NULL</span>,
+    date_bon           <span class="kw">DATE</span>           <span class="kw">NULL</span>,
+    montant_bon        <span class="kw">DECIMAL</span>(15,2)  <span class="kw">NOT NULL DEFAULT</span> 0,
+    statut_bon         <span class="kw">VARCHAR</span>(30)    <span class="kw">NULL</span>,
+    ID_vendeur         <span class="kw">BIGINT</span>         <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_bon_commande),
+    <span class="kw">UNIQUE KEY</span> uk_bon_numero (numero_bon),
+    <span class="kw">KEY</span> idx_bon_vendeur (ID_vendeur),
+    <span class="kw">CONSTRAINT</span> fk_bon_vendeur <span class="kw">FOREIGN KEY</span> (ID_vendeur)
+        <span class="kw">REFERENCES</span> VENDEUR (ID_vendeur) <span class="kw">ON DELETE SET NULL</span>
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">COMMISSION</span> (
+    ID_commission       <span class="kw">BIGINT</span>         <span class="kw">NOT NULL</span>,
+    code_commission     <span class="kw">VARCHAR</span>(50)    <span class="kw">NOT NULL</span>,
+    taux_commission     <span class="kw">DECIMAL</span>(6,2)   <span class="kw">NOT NULL DEFAULT</span> 0,
+    montant_commission  <span class="kw">DECIMAL</span>(15,2)  <span class="kw">NOT NULL DEFAULT</span> 0,
+    date_commission     <span class="kw">DATE</span>           <span class="kw">NULL</span>,
+    ID_vendeur          <span class="kw">BIGINT</span>         <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_commission),
+    <span class="kw">UNIQUE KEY</span> uk_commission_code (code_commission),
+    <span class="kw">KEY</span> idx_commission_vendeur (ID_vendeur),
+    <span class="kw">CONSTRAINT</span> fk_commission_vendeur <span class="kw">FOREIGN KEY</span> (ID_vendeur)
+        <span class="kw">REFERENCES</span> VENDEUR (ID_vendeur) <span class="kw">ON DELETE SET NULL</span>
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">PAIEMENT</span> (
+    ID_paiement       <span class="kw">BIGINT</span>        <span class="kw">NOT NULL</span>,
+    code_paiement     <span class="kw">VARCHAR</span>(50)   <span class="kw">NOT NULL</span>,
+    mode_paiement     <span class="kw">VARCHAR</span>(50)   <span class="kw">NOT NULL</span>,
+    montant_paiement  <span class="kw">DECIMAL</span>(15,2) <span class="kw">NOT NULL DEFAULT</span> 0,
+    date_paiement     <span class="kw">DATE</span>          <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_paiement),
+    <span class="kw">UNIQUE KEY</span> uk_paiement_code (code_paiement)
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">UTILISATEUR</span> (
+    ID_utilisateur       <span class="kw">BIGINT</span>       <span class="kw">NOT NULL</span>,
+    login_utilisateur    <span class="kw">VARCHAR</span>(100) <span class="kw">NOT NULL</span>,
+    password_utilisateur <span class="kw">VARCHAR</span>(255) <span class="kw">NOT NULL</span>,
+    nom_utilisateur      <span class="kw">VARCHAR</span>(100) <span class="kw">NULL</span>,
+    email_utilisateur    <span class="kw">VARCHAR</span>(150) <span class="kw">NULL</span>,
+    role_utilisateur     <span class="kw">VARCHAR</span>(50)  <span class="kw">NULL</span>,
+    photo_utilisateur    <span class="kw">TEXT</span>         <span class="kw">NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_utilisateur),
+    <span class="kw">UNIQUE KEY</span> uk_utilisateur_login (login_utilisateur)
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="cm">-- ────────────────────────────────────────────────────────────</span>
+<span class="cm">--  Tables d'association</span>
+<span class="cm">-- ────────────────────────────────────────────────────────────</span>
+
+<span class="kw">CREATE TABLE</span> <span class="fn">EXPLOITER</span> (
+    ID_vendeur <span class="kw">BIGINT NOT NULL</span>,
+    ID_rayon   <span class="kw">BIGINT NOT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_vendeur, ID_rayon),
+    <span class="kw">CONSTRAINT</span> fk_exploiter_vendeur <span class="kw">FOREIGN KEY</span> (ID_vendeur)
+        <span class="kw">REFERENCES</span> VENDEUR (ID_vendeur) <span class="kw">ON DELETE CASCADE</span>,
+    <span class="kw">CONSTRAINT</span> fk_exploiter_rayon <span class="kw">FOREIGN KEY</span> (ID_rayon)
+        <span class="kw">REFERENCES</span> RAYON (ID_rayon) <span class="kw">ON DELETE CASCADE</span>
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="kw">CREATE TABLE</span> <span class="fn">ETRE_PAYE_PAR</span> (
+    ID_bon_commande <span class="kw">BIGINT NOT NULL</span>,
+    ID_paiement     <span class="kw">BIGINT NOT NULL</span>,
+    <span class="kw">PRIMARY KEY</span> (ID_bon_commande, ID_paiement),
+    <span class="kw">CONSTRAINT</span> fk_epp_bon <span class="kw">FOREIGN KEY</span> (ID_bon_commande)
+        <span class="kw">REFERENCES</span> BON_COMMANDE (ID_bon_commande) <span class="kw">ON DELETE CASCADE</span>,
+    <span class="kw">CONSTRAINT</span> fk_epp_paiement <span class="kw">FOREIGN KEY</span> (ID_paiement)
+        <span class="kw">REFERENCES</span> PAIEMENT (ID_paiement) <span class="kw">ON DELETE CASCADE</span>
+) <span class="kw">ENGINE</span>=InnoDB;</pre>
+
+<!-- ================================================================ -->
+<!--  PAGE 4 : Dictionnaire de donnees                                  -->
+<!-- ================================================================ -->
+
+<div class="page-break"></div>
+<h2>4. Dictionnaire de Données</h2>
+
+<table class="card">
+  <thead><tr><th>Entité</th><th>Attribut</th><th>Type</th><th>Taille</th><th>Null?</th><th>Contrainte</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="7"><strong>VENDEUR</strong></td>
+        <td>ID_vendeur</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique du vendeur</td></tr>
+    <tr><td>code_vendeur</td><td>VARCHAR</td><td>50</td><td>Non</td><td>UNIQUE</td><td>Code interne (ex: V001)</td></tr>
+    <tr><td>nom_vendeur</td><td>VARCHAR</td><td>100</td><td>Non</td><td>—</td><td>Nom de famille</td></tr>
+    <tr><td>prenom_vendeur</td><td>VARCHAR</td><td>100</td><td>Oui</td><td>—</td><td>Prénom</td></tr>
+    <tr><td>email_vendeur</td><td>VARCHAR</td><td>150</td><td>Oui</td><td>—</td><td>Adresse email</td></tr>
+    <tr><td>telephone_vendeur</td><td>VARCHAR</td><td>30</td><td>Oui</td><td>—</td><td>Numéro de téléphone</td></tr>
+    <tr><td>adresse_vendeur</td><td>VARCHAR</td><td>255</td><td>Oui</td><td>—</td><td>Adresse postale</td></tr>
+
+    <tr><td rowspan="4"><strong>RAYON</strong></td>
+        <td>ID_rayon</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique du rayon</td></tr>
+    <tr><td>code_rayon</td><td>VARCHAR</td><td>50</td><td>Non</td><td>UNIQUE</td><td>Code interne (ex: RAY-ELEC)</td></tr>
+    <tr><td>nom_rayon</td><td>VARCHAR</td><td>100</td><td>Non</td><td>—</td><td>Nom du rayon</td></tr>
+    <tr><td>description_rayon</td><td>VARCHAR</td><td>500</td><td>Oui</td><td>—</td><td>Description du rayon</td></tr>
+
+    <tr><td rowspan="6"><strong>BON_COMMANDE</strong></td>
+        <td>ID_bon_commande</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique</td></tr>
+    <tr><td>numero_bon</td><td>VARCHAR</td><td>50</td><td>Non</td><td>UNIQUE</td><td>Numéro du bon (ex: BC-2025-001)</td></tr>
+    <tr><td>date_bon</td><td>DATE</td><td>—</td><td>Oui</td><td>—</td><td>Date d'émission</td></tr>
+    <tr><td>montant_bon</td><td>DECIMAL</td><td>15,2</td><td>Non</td><td>DEFAULT 0</td><td>Montant total en Ar</td></tr>
+    <tr><td>statut_bon</td><td>VARCHAR</td><td>30</td><td>Oui</td><td>—</td><td>PAYE / EN_COURS / ANNULE</td></tr>
+    <tr><td>ID_vendeur</td><td>BIGINT</td><td>—</td><td>Oui</td><td>FK → VENDEUR</td><td>Vendeur émetteur (SET NULL on delete)</td></tr>
+
+    <tr><td rowspan="6"><strong>COMMISSION</strong></td>
+        <td>ID_commission</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique</td></tr>
+    <tr><td>code_commission</td><td>VARCHAR</td><td>50</td><td>Non</td><td>UNIQUE</td><td>Code (ex: CO-2025-001)</td></tr>
+    <tr><td>taux_commission</td><td>DECIMAL</td><td>6,2</td><td>Non</td><td>DEFAULT 0</td><td>Pourcentage de commission (%)</td></tr>
+    <tr><td>montant_commission</td><td>DECIMAL</td><td>15,2</td><td>Non</td><td>DEFAULT 0</td><td>Montant calculé en Ar</td></tr>
+    <tr><td>date_commission</td><td>DATE</td><td>—</td><td>Oui</td><td>—</td><td>Date d'attribution</td></tr>
+    <tr><td>ID_vendeur</td><td>BIGINT</td><td>—</td><td>Oui</td><td>FK → VENDEUR</td><td>Vendeur bénéficiaire (SET NULL on delete)</td></tr>
+
+    <tr><td rowspan="5"><strong>PAIEMENT</strong></td>
+        <td>ID_paiement</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique</td></tr>
+    <tr><td>code_paiement</td><td>VARCHAR</td><td>50</td><td>Non</td><td>UNIQUE</td><td>Code (ex: PAY-001)</td></tr>
+    <tr><td>mode_paiement</td><td>VARCHAR</td><td>50</td><td>Non</td><td>—</td><td>ESPECES / CB / VIREMENT</td></tr>
+    <tr><td>montant_paiement</td><td>DECIMAL</td><td>15,2</td><td>Non</td><td>DEFAULT 0</td><td>Montant payé en Ar</td></tr>
+    <tr><td>date_paiement</td><td>DATE</td><td>—</td><td>Oui</td><td>—</td><td>Date du paiement</td></tr>
+
+    <tr><td rowspan="2"><strong>EXPLOITER</strong></td>
+        <td>ID_vendeur</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK, FK → VENDEUR</td><td>CASCADE on delete</td></tr>
+    <tr><td>ID_rayon</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK, FK → RAYON</td><td>CASCADE on delete</td></tr>
+
+    <tr><td rowspan="2"><strong>ETRE_PAYE_PAR</strong></td>
+        <td>ID_bon_commande</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK, FK → BON_COMMANDE</td><td>CASCADE on delete</td></tr>
+    <tr><td>ID_paiement</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK, FK → PAIEMENT</td><td>CASCADE on delete</td></tr>
+
+    <tr><td rowspan="7"><strong>UTILISATEUR</strong></td>
+        <td>ID_utilisateur</td><td>BIGINT</td><td>—</td><td>Non</td><td>PK</td><td>Identifiant unique</td></tr>
+    <tr><td>login_utilisateur</td><td>VARCHAR</td><td>100</td><td>Non</td><td>UNIQUE</td><td>Login de connexion</td></tr>
+    <tr><td>password_utilisateur</td><td>VARCHAR</td><td>255</td><td>Non</td><td>—</td><td>Mot de passe (non hashé)</td></tr>
+    <tr><td>nom_utilisateur</td><td>VARCHAR</td><td>100</td><td>Oui</td><td>—</td><td>Nom complet affiché</td></tr>
+    <tr><td>email_utilisateur</td><td>VARCHAR</td><td>150</td><td>Oui</td><td>—</td><td>Email</td></tr>
+    <tr><td>role_utilisateur</td><td>VARCHAR</td><td>50</td><td>Oui</td><td>—</td><td>ADMIN / MANAGER / OPERATEUR</td></tr>
+    <tr><td>photo_utilisateur</td><td>TEXT</td><td>—</td><td>Oui</td><td>—</td><td>Photo profil (base64 JPEG)</td></tr>
+  </tbody>
+</table>
+
+<h2>5. Contraintes d'intégrité</h2>
+<table class="card">
+  <thead><tr><th>Type</th><th>Contrainte</th><th>Table</th></tr></thead>
+  <tbody>
+    <tr><td>Clé primaire</td><td>ID_* — identifiant unique non nul</td><td>Toutes les tables</td></tr>
+    <tr><td>Clé unique</td><td>code_* — numéro de référence unique</td><td>RAYON, VENDEUR, BON_COMMANDE, COMMISSION, PAIEMENT, UTILISATEUR (login)</td></tr>
+    <tr><td>Clé étrangère</td><td>ID_vendeur → VENDEUR (SET NULL)</td><td>BON_COMMANDE, COMMISSION</td></tr>
+    <tr><td>Clé étrangère</td><td>ID_vendeur → VENDEUR (CASCADE)</td><td>EXPLOITER</td></tr>
+    <tr><td>Clé étrangère</td><td>ID_rayon → RAYON (CASCADE)</td><td>EXPLOITER</td></tr>
+    <tr><td>Clé étrangère</td><td>ID_bon_commande → BON_COMMANDE (CASCADE)</td><td>ETRE_PAYE_PAR</td></tr>
+    <tr><td>Clé étrangère</td><td>ID_paiement → PAIEMENT (CASCADE)</td><td>ETRE_PAYE_PAR</td></tr>
+    <tr><td>Default</td><td>montant = 0 si non fourni</td><td>BON_COMMANDE, COMMISSION, PAIEMENT</td></tr>
+    <tr><td>Not null</td><td>Champs obligatoires (codes, noms, montants)</td><td>Toutes les tables</td></tr>
+  </tbody>
+</table>
+
+<footer>
+  SCOM — Système de Gestion Commerciale &bull; Conception BD &bull; 26/08/2026
+</footer>
+
+</body>
+</html>

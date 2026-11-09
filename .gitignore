@@ -1,0 +1,36 @@
+# --- Java / Maven ---
+target/
+*.class
+*.jar
+*.war
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# --- Node / Vite / React ---
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Env local ---
+*.local
+
+# --- Next.js sandbox (documentation hub only) ---
+.next/
+next-env.d.ts
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
